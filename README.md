@@ -1,8 +1,21 @@
 ### How to Install
+
+Create a workspace
 ```
 mkdir <project_name>
+```
+
+Open the workspace
+```
 cd <project_name>
-git clone https://github.com/ulusoyn/src.git
-cd ..
-colcon build
+```
+
+Clone the repository
+```
+random@random:~/<project_name>$ git clone https://github.com/ulusoyn/src.git
+```
+
+Build
+```
+random@random:~/<project_name>$ colcon build
 ```
