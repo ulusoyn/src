@@ -2,12 +2,12 @@
 
 Create a workspace
 ```
-mkdir <project_name>
+random@random:~$ mkdir <project_name>
 ```
 
 Open the workspace
 ```
-cd <project_name>
+random@random:~$ cd <project_name>
 ```
 
 Clone the repository
