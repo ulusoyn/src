@@ -7,6 +7,12 @@
   <maintainer email="uluosynuri3@gmail.com">nuri</maintainer>
   <license>TODO: License declaration</license>
 
+
+  <depend>robot_interfaces</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rosidl_default_runtime</depend>
+
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>nav2_bringup</exec_depend>
