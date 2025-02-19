@@ -11,10 +11,12 @@ find_package(rclpy REQUIRED)
 find_package(robot_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 
 install(
   PROGRAMS
     bumperbot_navigation/simple_commander.py
+    bumperbot_navigation/robot_gui.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

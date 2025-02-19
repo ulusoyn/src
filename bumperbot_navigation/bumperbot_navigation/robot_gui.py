@@ -2,27 +2,81 @@
 import rclpy
 from robot_interfaces.msg import RobotDestination, RobotPose
 from geometry_msgs.msg import PoseStamped
-from std_msgs.msg import String
 from nav2_simple_commander.robot_navigator import BasicNavigator
 from rclpy.node import Node
 import tkinter as tk
 import threading
 
-class RobotGUI:
-    """Handles the Tkinter GUI."""
-    def __init__(self, ros_node, name, size="500x400"):
-        self.ros_node = ros_node  # Reference to ROS2 node
+
+
+class SimpleCommanderNode(Node):
+    def __init__(self):
+        super().__init__('simple_commander_node')
+
+        # GUI INITIALIZATION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        
+        
+
+
+        # GUI INITIALIZATION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
+
+        self.pose = PoseStamped()
+        self.nav = BasicNavigator() # this initialization creates /amcl_pose and /initialpose topics.
+                                    # /initialpose topic can be initialized with .setInitialPose() function and can be monitored
+                                    # by ros2 topic echo /initialpose (published once)
+
+        # Reserved for notes -----------------------------------------------------------------------------------
+        #
+        #
+        #
+        #
+        #
+        #
+        #
+        #
+        #
+        # End of notes ---------------------------------------------------------------------------------------
+
+        self.publisher_ = self.create_publisher(PoseStamped, 'robot_destination',10)
+        self.pose_initializer = self.create_subscription(RobotPose, 'robot_initial_pose', self.pose_callback, 10)
+
+        self.gui_thread = threading.Thread(target=self.run_gui, daemon=True)
+        self.gui_thread.start()
+
+
+    def pose_callback(self, msg):
+        self.pose.header.frame_id = "map"
+        self.pose.header.stamp = self.get_clock().now().to_msg()
+        self.pose.pose.position.x = msg.x
+        self.pose.pose.position.y = msg.y
+        self.pose.pose.orientation.z = 0.0
+
+
+        self.nav.setInitialPose(self.pose)
+        self.publisher_.publish(self.pose) 
+
+        self.destroy_subscription(self.pose_initializer)
+
+    def run_gui(self):
+        name = "MyGUI"
+        size = "500x400"
 
         self.root = tk.Tk()
         self.root.title(name)
-        self.root.geometry(size) 
+        self.root.geometry(size)
+        self.root.minsize(width='300', height='300')
 
         self.move_label = ""
         self.x_coord = 0.0
         self.y_coord = 0.0
 
+
         label = tk.Label(self.root, text="Mobile Robot Controller UI", font=('Arial', 24), background="lightgreen", height=2)
         label.pack(fill='both')
+
         label = tk.Label(self.root, height=2)
         label.pack(fill='both')
 
@@ -42,7 +96,7 @@ class RobotGUI:
         rightFrame = tk.Frame(pageFrame, width='2')
         rightFrame.grid(row=0, column=1, sticky="esn")
 
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BUTTON FRAME
+        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BUTTON FRAME
 
         # Button Frame inside the left frame (3x3 grid)
         buttonFrame = tk.Frame(leftFrame, width='12')
@@ -67,7 +121,9 @@ class RobotGUI:
         btnDown.grid(row=2, column=1, sticky="nsew")
 
         
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@ Coordinate Frame
+        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Coordinate Frame
+
+
 
         coordinate_frame_label = tk.Label(rightFrame, text="Destination Coordinates", font=('Arial', 16), background="lightblue")
         coordinate_frame_label.grid(row=0, column=0)
@@ -91,6 +147,8 @@ class RobotGUI:
         textbox_situation.grid(row=2, column=0)
         btnMove = tk.Button(cord_frame, text="Move", height=2, width=8, font=('Arial', 16), command=self.btn_move_function)
         btnMove.grid(row=2, column=1, sticky='e')
+        
+        self.root.mainloop()
 
     def btn_up_function(self):
         print('Pressed button up')
@@ -110,56 +168,23 @@ class RobotGUI:
     def btn_down_function(self):
         print('Pressed button down')
         self.x_coord -= 0.5
+        # Quit Button
+        self.quit_button = tk.Button(self.root, text="Quit", command=self.close_app)
+        self.quit_button.pack()
         self.delete_text(self.textbox_x)
         self.textbox_x.insert('1.0', str(self.x_coord))
 
-    def btn_move_function(self):
-        message = str('x: ' + str(self.x_coord) + 'y: ' + str(self.y_coord))
-        self.ros_node.send_number(message)
+    def btn_move_function(self, text):
+        text.delete('1.0', 'end')
+        self.move_label = str('x: ' + str(self.x_coord) + 'y: ' + str(self.y_coord))
+        text.insert('1.0', self.move_label)
+        self.delete_text(self.textbox_x)
+        self.delete_text(self.textbox_y)
 
     def delete_text(self, text):
         text.delete('1.0', 'end')
 
-    def run(self):
-        """Starts the Tkinter event loop."""
-        self.gui_thread = threading.Thread(target=self.root.mainloop(), daemon=True)
-        self.gui_thread.start()
-
-class SimpleCommanderNode(Node):
-    def __init__(self):
-        super().__init__('simple_commander_node')
-
-        self.gui = RobotGUI(self, "myGui")
-
-        self.pose = PoseStamped()
-        self.nav = BasicNavigator() # this initialization creates /amcl_pose and /initialpose topics.
-                                    # /initialpose topic can be initialized with .setInitialPose() function and can be monitored
-                                    # by ros2 topic echo /initialpose (published once)
-
-        self.publisher_ = self.create_publisher(PoseStamped, 'robot_destination',10)
-        self.number_publisher_ = self.create_publisher(String, 'number_publisher', 10)
-        self.pose_initializer = self.create_subscription(RobotPose, 'robot_initial_pose', self.pose_callback, 10)
-
-        self.gui.run()
-
-
-    def pose_callback(self, msg):
-        self.pose.header.frame_id = "map"
-        self.pose.header.stamp = self.get_clock().now().to_msg()
-        self.pose.pose.position.x = msg.x
-        self.pose.pose.position.y = msg.y
-        self.pose.pose.orientation.z = 0.0
-
-        self.nav.setInitialPose(self.pose)
-        self.publisher_.publish(self.pose) 
-
-        self.destroy_subscription(self.pose_initializer)
-
-    def send_number(self, string):
-        message = String()
-        message._data = str(string)
-        self.number_publisher_.publish(message)
-
+        
             
         
 def main(args=None):
