@@ -174,7 +174,7 @@ class SimpleCommanderNode(Node):
                                     # /initialpose topic can be initialized with .setInitialPose() function and can be monitored
                                     # by ros2 topic echo /initialpose (published once)
         
-        self.pose_subsription = self.create_subscription(RobotPose, 'amcik_pose', self.listener_callback, 10)
+        self.pose_subsription = self.create_subscription(RobotPose, 'pose_pose', self.listener_callback, 10)
 
         self.publisher_ = self.create_publisher(PoseStamped, 'robot_destination',10)
         self.number_publisher_ = self.create_publisher(String, 'number_publisher', 10)
