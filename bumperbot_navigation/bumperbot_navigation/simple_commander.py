@@ -2,6 +2,7 @@
 import rclpy
 from robot_interfaces.msg import RobotDestination, RobotPose
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
+from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String
 from nav2_simple_commander.robot_navigator import BasicNavigator
 from rclpy.node import Node
@@ -22,6 +23,9 @@ class RobotGUI:
         self.move_label = ""
         self.x_coord = 0.0
         self.y_coord = 0.0
+
+        self.destination_x = 0.0
+        self.destination_y = 0.0
 
         label = tk.Label(self.root, text="Mobile Robot Controller UI", font=('Arial', 24), background="lightgreen", height=2)
         label.pack(fill='both')
@@ -107,13 +111,24 @@ class RobotGUI:
         self.pos_y_text.grid(row=1, column=1, sticky='w')
 
     def btn_up_function(self, button):
-        self.textbox_x.insert('1.0', "selam")
-        self.movement(button)
-    def btn_left_function(self, button):
-        self.movement(button)
-    def btn_right_function(self, button):
+        self.destination_x += 0.1
+        self.delete_text(self.textbox_x)
+        self.textbox_x.insert('1.0', str(self.destination_x))
         self.movement(button)
     def btn_down_function(self, button):
+        self.destination_x -= 0.1
+        self.delete_text(self.textbox_x)
+        self.textbox_y.insert('1.0', str(self.destination_x))
+        self.movement(button)
+    def btn_right_function(self, button):
+        self.destination_y += 0.1
+        self.delete_text(self.textbox_y)
+        self.textbox_y.insert('1.0', str(self.destination_y))
+        self.movement(button)
+    def btn_left_function(self, button):
+        self.destination_y -= 0.1
+        self.delete_text(self.textbox_y)
+        self.textbox_y.insert('1.0', str(self.destination_y))
         self.movement(button)
 
     def movement(self, button: tk.Button):
@@ -133,6 +148,7 @@ class RobotGUI:
     def write_to_text_box(self, textbox, message):
         # to write a message to a disabled textbox, reconfigure it to normal and disable it
         textbox.configure(state='normal')
+        self.delete_text_box(textbox)
         textbox.insert('1.0', message)
         textbox.configure(state='disabled')
 
@@ -161,7 +177,7 @@ class RobotGUI:
 
     def run(self):
         """Starts the Tkinter event loop."""
-        self.gui_thread = threading.Thread(target=self.root.mainloop(), daemon=True)
+        self.gui_thread = threading.Thread(target=self.root.mainloop, daemon=True)
         self.gui_thread.start()
 
 class SimpleCommanderNode(Node):
@@ -174,8 +190,7 @@ class SimpleCommanderNode(Node):
                                     # /initialpose topic can be initialized with .setInitialPose() function and can be monitored
                                     # by ros2 topic echo /initialpose (published once)
         
-        self.pose_subsription = self.create_subscription(RobotPose, 'pose_pose', self.listener_callback, 10)
-
+        self.pose_subscription = self.create_subscription(String, 'pose_pose', self.listener_callback, 10)
         self.publisher_ = self.create_publisher(PoseStamped, 'robot_destination',10)
         self.number_publisher_ = self.create_publisher(String, 'number_publisher', 10)
         # self.pose_initializer = self.create_subscription(RobotPose, 'robot_initial_pose', self.pose_callback, 10)
@@ -183,15 +198,17 @@ class SimpleCommanderNode(Node):
         self.gui.update_robot_position(4.2, 3.5)
 
         # self.nav.waitUntilNav2Active()
-
-        self.gui.run()
+       
+        self.gui.run();
 
 
     def listener_callback(self, msg):
-        self.number_publisher_.publish("315269")
-        self.get_logger().info('I heard: "%s"' % msg.x)
+        string = String()
+        string.data = msg.data
+        self.number_publisher_.publish(string)
+        self.get_logger().info('I heard: "%s"' % msg.data)
         # self.gui.update_robot_position(msg.pose.position.x, msg.pose.position.y)
-        self.gui.update_robot_position(msg.x, msg.y)
+        # self.gui.update_robot_position(msg.x, msg.y)
 
 
     def pose_callback(self, msg):
@@ -227,6 +244,9 @@ class SimpleCommanderNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = SimpleCommanderNode()
+
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
     
     # Run ROS2 event loop without blocking
     try:

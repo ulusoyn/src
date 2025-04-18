@@ -20,7 +20,6 @@ def generate_launch_description():
     map_path = PathJoinSubstitution([
         get_package_share_directory("bumperbot_mapping"),
         "maps",
-        "trial",
         "map.yaml"
     ])
     

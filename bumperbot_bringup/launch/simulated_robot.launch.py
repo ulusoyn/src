@@ -78,7 +78,7 @@ def generate_launch_description():
         executable="safety_stop",
         output="screen"
     )
-    
+
     rviz_localization = Node(
         package="rviz2",
         executable="rviz2",
@@ -111,6 +111,7 @@ def generate_launch_description():
         controller,
         joystick,
         localization,
+        # navigation,
         slam,
         safety_stop,
         rviz_localization,

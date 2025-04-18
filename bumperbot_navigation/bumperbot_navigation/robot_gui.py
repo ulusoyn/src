@@ -14,14 +14,7 @@ class SimpleCommanderNode(Node):
         super().__init__('simple_commander_node')
 
         # GUI INITIALIZATION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        
-        
-
-
         # GUI INITIALIZATION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
-
 
         self.pose = PoseStamped()
         self.nav = BasicNavigator() # this initialization creates /amcl_pose and /initialpose topics.
